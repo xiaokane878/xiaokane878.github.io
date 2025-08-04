@@ -1,149 +1,150 @@
-let options = document.querySelectorAll(".btn-option");
-let question = document.querySelector(".question");
-let start_btn = document.querySelector(".started")
-let options_container = document.querySelector(".option")
+// Select DOM elements
+const questionEl = document.querySelector(".question");
+const startBtn = document.querySelector(".started");
+const optionsContainer = document.querySelector(".option");
+const optionBtns = document.querySelectorAll(".btn-option");
 
-let questionArray = [];
-let currentQuestionIndex = 0;
+// Game state
+let questions = [];
+let currentIdx = 0;
 let score = 0;
 
+// Question class
 class Question {
-    constructor(text, correct, options) {
+    constructor(text, answer, choices) {
         this.text = text;
-        this.correct = correct;
-        this.options = options;
+        this.answer = answer;
+        this.choices = choices;
     }
-
-    display() {
-        question.innerHTML = this.text;
-        options.forEach((btn, index) => {
-            btn.innerHTML = this.options[index];
+    render() {
+        questionEl.textContent = this.text;
+        optionBtns.forEach((btn, i) => {
+            btn.textContent = this.choices[i];
+            btn.style.display = "block";
+            btn.style.backgroundColor = "";
         });
     }
 }
 
-function hidden_end () {
-    options.forEach(choice => {
-        choice.style.display = "none";
-    })
-}
-
-function shuffle(array) {
-  let currentIndex = array.length,  randomIndex;
-
-  while (currentIndex != 0) { // The loop repeats until there are elements to mix
-    randomIndex = Math.floor(Math.random() * currentIndex); // Select the remaining element.
-    currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [    // Swapping with the current element.
-      array[randomIndex], array[currentIndex]];
-  }
-  return array; // Returning the shuffled array
-}
-
-// Generate 7 questions
-function generateQuestions() {
-    for (let i = 0; i < 7; i++) {
-        let qna = rand_qna();
-        let choices = [
-            qna.answer,
-            Math.floor(Math.random() * 51),
-            Math.floor(Math.random() * 41),
-            Math.floor(Math.random() * 31),
-            Math.floor(Math.random() * 21),
-        ];
-
-        // Shuffle choices
-        choices = shuffle(choices);
-
-        let q = new Question(qna.text, qna.answer, choices);
-        questionArray.push(q);
+// Utility functions
+function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
     }
+    return arr;
 }
 
-// Random operator and question
 function getRandomOperator() {
-    const ops = ['+', '-', '*', '/'];
-    return ops[Math.floor(Math.random() * ops.length)];
+    return ['+', '-', '*', '/'][Math.floor(Math.random() * 4)];
 }
 
-function rand_qna() {
-    let num1 = Math.floor(Math.random() * 31);
-    let num2 = Math.floor(Math.random() * 31) || 1; // avoid divide by 0
-    let op = getRandomOperator();
-    let text = `${num1} ${op} ${num2}`;
-    let answer = Math.round(eval(text));
+function generateQnA() {
+    const num1 = Math.floor(Math.random() * 31);
+    const num2 = Math.floor(Math.random() * 30) + 1; // avoid zero
+    const op = getRandomOperator();
+    const text = `${num1} ${op} ${num2}`;
+    const answer = Math.round(eval(text));
     return { text, answer };
 }
 
-// Show next question
-function showNextQuestion() {
-    if (currentQuestionIndex < questionArray.length) {
-        questionArray[currentQuestionIndex].display();
-    } else {
-        question.innerHTML = `You gave ${score} correct answer from ${currentQuestionIndex}. Accuracy - ${Math.round(score * 100 / currentQuestionIndex)}% `;
-        options.forEach(btn => btn.innerHTML = '');
-        alert(
-            "Correct: " + score + "\n" +
-            "Total: " + currentQuestionIndex + "\n" +
-            "Accuracy: " + Math.round((score * 100) / currentQuestionIndex) + "%"
-            );
-        hidden_end();
+function generateQuestions(count = 7) {
+    questions = [];
+    for (let i = 0; i < count; i++) {
+        const { text, answer } = generateQnA();
+        let choices = [answer];
+        while (choices.length < 5) {
+            const fake = Math.floor(Math.random() * 51);
+            if (!choices.includes(fake)) choices.push(fake);
+        }
+        shuffle(choices);
+        questions.push(new Question(text, answer, choices));
     }
 }
 
-options.forEach(btn => {
-    btn.addEventListener("click", function () {
-        const btn_choices = this
-        let currentQ = questionArray[currentQuestionIndex];
-        if (parseInt(this.innerHTML) === currentQ.correct) {
-            console.log("Correct!");
-            score++;
-            anime({
-                targets: this,
-                duration: 1000,
-                'background-color': "#05f531",
-                easing: 'linear'
-            })
-        } else {
-            console.log("Incorrect!");
-            anime({
-                targets: this,
-                duration: 1000,
-                'background-color': "#f50505",
-                easing: 'linear'
-            })
-        }
-
-        setTimeout(() => {
-            btn_choices.style.backgroundColor = "";
-            currentQuestionIndex++;
-            showNextQuestion();
-        }, 2000)
-    });
-});
-
-function start_game () {
-    question.innerHTML = "Ready to Start?";
-    start_btn.style.display = "flex";
-
-    start_btn.addEventListener("click", function () {
-        start_btn.style.display = "none";
-        options_container.style.display = "flex";
-
-/*        setTimeout(function () {
-            question.innerHTML = `You gave ${score} correct answer from ${currentQuestionIndex}. Accuracy - ${Math.round(score * 100 / currentQuestionIndex)}% `;
-            options.forEach(btn => btn.innerHTML = '');
-            alert(
-                "Correct: " + score + "\n" +
-                "Total: " + currentQuestionIndex + "\n" +
-                "Accuracy: " + Math.round((score * 100) / currentQuestionIndex) + "%"
-                );
-            hidden_end();
-        }, 10000) */
-
-        generateQuestions();
-        showNextQuestion();
-    })
+// Game logic
+function showNextQuestion() {
+    if (currentIdx < questions.length) {
+        questions[currentIdx].render();
+    } else {
+        endGame();
+    }
 }
 
-start_game();
+function endGame() {
+    const accuracy = currentIdx ? Math.round((score * 100) / currentIdx) : 0;
+    questionEl.textContent = `You gave ${score} correct answer${score !== 1 ? 's' : ''} from ${currentIdx}. Accuracy - ${accuracy}%`;
+    optionBtns.forEach(btn => btn.textContent = '');
+    optionBtns.forEach(btn => btn.style.display = "none");
+    // Create or show a restart button
+    let restartBtn = document.getElementById('restart-btn');
+    if (!restartBtn) {
+        restartBtn = document.createElement('div');
+        restartBtn.id = 'restart-btn';
+        restartBtn.textContent = 'Start Game Again';
+        restartBtn.style.alignItems = "center";
+        restartBtn.style.justifyContent = "center";
+        restartBtn.style.border = "1px solid black";
+        restartBtn.style.padding = "13px";
+        restartBtn.style.fontSize = "0.8rem";
+        restartBtn.style.width = "100%";
+        restartBtn.style.maxWidth = "365px";
+        restartBtn.style.textAlign = "center";
+        restartBtn.style.boxSizing = "border-box";
+        restartBtn.style.wordBreak = "break-word";
+        restartBtn.onclick = function() {
+            restartBtn.remove();
+            startGame();
+        };
+        questionEl.parentNode.insertBefore(restartBtn, questionEl.nextSibling);
+    } else {
+        restartBtn.style.display = 'block';
+    }
+}
+
+function handleOptionClick(e) {
+    const btn = e.currentTarget;
+    const selected = parseInt(btn.textContent);
+    const correct = questions[currentIdx].answer;
+    let color = selected === correct ? "#05f531" : "#f50505";
+    if (selected === correct) {
+        score++;
+    }
+    btn.style.backgroundColor = color;
+    // Remove previous event if any
+    btn.removeEventListener('transitionend', btn._transitionHandler);
+    // Define handler
+    btn._transitionHandler = function transitionHandler() {
+        btn.removeEventListener('transitionend', btn._transitionHandler);
+        btn.style.backgroundColor = "";
+        currentIdx++;
+        showNextQuestion();
+    };
+    btn.addEventListener('transitionend', btn._transitionHandler);
+}
+
+// Event listeners
+optionBtns.forEach(btn => {
+    btn.addEventListener("click", handleOptionClick);
+});
+
+function startGame() {
+    score = 0;
+    currentIdx = 0;
+    generateQuestions();
+    startBtn.style.display = "none";
+    optionsContainer.style.display = "flex";
+    showNextQuestion();
+    setTimeout(endGame, 10000);
+}
+
+startBtn.addEventListener("click", startGame);
+
+// Initial state
+function init() {
+    questionEl.textContent = "Ready to Start?";
+    startBtn.style.display = "flex";
+    optionsContainer.style.display = "none";
+    optionBtns.forEach(btn => btn.style.display = "none");
+}
+init();
