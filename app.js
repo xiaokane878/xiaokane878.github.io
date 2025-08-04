@@ -1,21 +1,19 @@
-// Select DOM elements
 const questionEl = document.querySelector(".question");
 const startBtn = document.querySelector(".started");
 const optionsContainer = document.querySelector(".option");
 const optionBtns = document.querySelectorAll(".btn-option");
 
-// Game state
 let questions = [];
 let currentIdx = 0;
 let score = 0;
 
-// Question class
 class Question {
     constructor(text, answer, choices) {
         this.text = text;
         this.answer = answer;
         this.choices = choices;
     }
+
     render() {
         questionEl.textContent = this.text;
         optionBtns.forEach((btn, i) => {
@@ -26,7 +24,6 @@ class Question {
     }
 }
 
-// Utility functions
 function shuffle(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -41,7 +38,7 @@ function getRandomOperator() {
 
 function generateQnA() {
     const num1 = Math.floor(Math.random() * 31);
-    const num2 = Math.floor(Math.random() * 30) + 1; // avoid zero
+    const num2 = Math.floor(Math.random() * 30) + 1;
     const op = getRandomOperator();
     const text = `${num1} ${op} ${num2}`;
     const answer = Math.round(eval(text));
@@ -62,7 +59,6 @@ function generateQuestions(count = 7) {
     }
 }
 
-// Game logic
 function showNextQuestion() {
     if (currentIdx < questions.length) {
         questions[currentIdx].render();
@@ -76,7 +72,7 @@ function endGame() {
     questionEl.textContent = `You gave ${score} correct answer${score !== 1 ? 's' : ''} from ${currentIdx}. Accuracy - ${accuracy}%`;
     optionBtns.forEach(btn => btn.textContent = '');
     optionBtns.forEach(btn => btn.style.display = "none");
-    // Create or show a restart button
+
     let restartBtn = document.getElementById('restart-btn');
     if (!restartBtn) {
         restartBtn = document.createElement('div');
@@ -111,19 +107,20 @@ function handleOptionClick(e) {
         score++;
     }
     btn.style.backgroundColor = color;
-    // Remove previous event if any
+
     btn.removeEventListener('transitionend', btn._transitionHandler);
-    // Define handler
+
     btn._transitionHandler = function transitionHandler() {
         btn.removeEventListener('transitionend', btn._transitionHandler);
         btn.style.backgroundColor = "";
         currentIdx++;
+        console.log("Current Index:", currentIdx);
         showNextQuestion();
     };
     btn.addEventListener('transitionend', btn._transitionHandler);
 }
 
-// Event listeners
+
 optionBtns.forEach(btn => {
     btn.addEventListener("click", handleOptionClick);
 });
@@ -140,7 +137,7 @@ function startGame() {
 
 startBtn.addEventListener("click", startGame);
 
-// Initial state
+
 function init() {
     questionEl.textContent = "Ready to Start?";
     startBtn.style.display = "flex";
