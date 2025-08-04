@@ -78,16 +78,6 @@ function endGame() {
         restartBtn = document.createElement('div');
         restartBtn.id = 'restart-btn';
         restartBtn.textContent = 'Start Game Again';
-        restartBtn.style.alignItems = "center";
-        restartBtn.style.justifyContent = "center";
-        restartBtn.style.border = "1px solid black";
-        restartBtn.style.padding = "13px";
-        restartBtn.style.fontSize = "0.8rem";
-        restartBtn.style.width = "100%";
-        restartBtn.style.maxWidth = "365px";
-        restartBtn.style.textAlign = "center";
-        restartBtn.style.boxSizing = "border-box";
-        restartBtn.style.wordBreak = "break-word";
         restartBtn.onclick = function() {
             restartBtn.remove();
             startGame();
